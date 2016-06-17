@@ -1,7 +1,9 @@
 # RESP
 A RESP(REdis Serialization Protocol) Lib, support c/py
 
-##REdis Serialization Protocol, http://redis.io/topics/protocol
+##REdis Serialization Protocol
+
+see:http://redis.io/topics/protocol
 
 The way RESP is used in Redis as a request-response protocol is the following:
 
