@@ -29,10 +29,24 @@ typedef struct {
 
 	char *buf;
 	uint32_t buf_size;
-	uint32_t pos;
+	uint32_t len;
 }RespRequest;
+
+typedef struct {
+	char *buf;
+	uint32_t buf_size;
+	uint32_t len;
+}RespResponse;
 
 RespRequest *create_request(uint32_t hint_buf_size);
 void destroy_request(RespRequest *request);
 
+int decode_request(RespRequest *request, const char *buf, uint32_t buf_len);
+
+RespResponse *create_response(uint32_t hint_buf_size);
+void destroy_response(RespResponse *response);
+
+int encode_response_simplestring(RespResponse *response, int ok, const char *msg);
+
 #endif
+
