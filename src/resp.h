@@ -32,6 +32,7 @@ typedef struct {
 	uint32_t buf_size;
 	uint32_t used_size;
 	int pos;
+	int skip_str;
 }RespRequest;
 
 typedef struct {
@@ -42,8 +43,9 @@ typedef struct {
 
 RespRequest *create_request(uint32_t hint_buf_size);
 void destroy_request(RespRequest *request);
+void reset_request(RespRequest *request);
 int decode_request(RespRequest *request, const char *buf, uint32_t buf_len);
-void print_request(RespRequest *request, int show_argv);
+void print_request(RespRequest *request);
 
 RespResponse *create_response(uint32_t hint_buf_size);
 void destroy_response(RespResponse *response);

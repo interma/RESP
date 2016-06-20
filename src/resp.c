@@ -61,9 +61,10 @@ int decode_request(RespRequest *request, const char *buf, uint32_t buf_len) {
 		uint32_t new_size = r->buf_size;
 		while (new_size < r->used_size+buf_len)
 			new_size *= 2; //double 
-		r->buf = (char *)realloc(r->buf, new_size);
-		if (r->buf == NULL)
+		char *more_buf = (char *)realloc(r->buf, new_size);
+		if (more_buf == NULL)
 			return -1;
+		r->buf = more_buf;
 		r->buf_size = new_size;
 	}
 	//just append
@@ -71,7 +72,6 @@ int decode_request(RespRequest *request, const char *buf, uint32_t buf_len) {
 	r->used_size += buf_len;
 	
 	int seg_end = -1;
-	int skip_str = 0;
 	while (seg_end = get_segment(r), seg_end > 0) {
 		//[pos, seg_end) is a segment
 
@@ -97,33 +97,36 @@ int decode_request(RespRequest *request, const char *buf, uint32_t buf_len) {
 		//$num str
 		else {
 			//$num
-			if (!skip_str && r->buf[r->pos] == '$') {
+			if (!r->skip_str && r->buf[r->pos] == '$') {
 				int len = atoi(r->buf+r->pos+1);
 				r->argv[r->cur_argc].off = seg_end+2;
 				r->argv[r->cur_argc].len = len;
-				r->cur_argc++;
-				skip_str = 1;
+				r->skip_str = 1;
 			}
 			//str
 			else {
-				skip_str = 0;
+				r->skip_str = 0;
+				r->cur_argc++;
 			}
 		}
 		
 		r->pos = seg_end+2;
+		if (r->argc > 0 && r->argc <= r->cur_argc)
+			break;
 	}
 
 	//check request	
-	if (r->argc != r->cur_argc) {
-		r->state = ERR;
-		return 0;
-	}
 
 	//judge remain
-	if (r->pos+2 >= r->used_size)
-		r->state = OK;
-	else
-		r->state = PART_OK;
+	if (r->cur_argc < r->argc) {
+		//NOT_YET
+	}
+	else {
+		if (r->pos+2 >= r->used_size)
+			r->state = OK;
+		else
+			r->state = PART_OK;
+	}
 	return 0;
 }
 
@@ -157,7 +160,8 @@ int encode_response_simplestring(RespResponse *response, int ok, const char *msg
 	return 0;
 }
 
-void print_request(RespRequest *request, int show_argv) {
+void print_request(RespRequest *request) {
+	int show_argv = 1;
 	RespRequest *r = request;
 	printf("state[%d] argc[%d] cur_argc[%d] ", r->state,r->argc,r->cur_argc);
 	printf("buf_size[%u] used_size[%u] pos[%d]", r->buf_size,r->used_size,r->pos);
@@ -173,6 +177,24 @@ void print_request(RespRequest *request, int show_argv) {
 
 		printf("\n");
 	}
+}
+
+void reset_request(RespRequest *request) {
+	if (request == NULL)
+		return;
+
+	RespRequest *r = request;
+	r->state = INIT;
+	r->argc = r->cur_argc = 0;
+	if (r->argv != NULL)
+		free(r->argv);
+	r->argv = NULL;
+	
+	r->used_size = 0;
+	r->pos = 0;
+	r->skip_str = 0;
+
+	//reuse buf&buf_size
 }
 
 
