@@ -9,27 +9,29 @@
 
 #include <stdint.h>
 
-enum STATUS{
+enum STATE{
 	ERR = -1,
 	INIT = 0,
+	NOT_YET,
 	OK,
 	PART_OK,
-	NOT_YET,
 };
 
 typedef struct{
-	uint32_t off;
-	uint32_t len;
+	int off;
+	int len;
 }RespSlice;
 
 typedef struct {
-	int status;
-	uint32_t argc;
+	int state;
+	int argc;
+	int cur_argc;
 	RespSlice *argv;
 
 	char *buf;
 	uint32_t buf_size;
-	uint32_t len;
+	uint32_t used_size;
+	int pos;
 }RespRequest;
 
 typedef struct {
@@ -40,12 +42,11 @@ typedef struct {
 
 RespRequest *create_request(uint32_t hint_buf_size);
 void destroy_request(RespRequest *request);
-
 int decode_request(RespRequest *request, const char *buf, uint32_t buf_len);
+void print_request(RespRequest *request, int show_argv);
 
 RespResponse *create_response(uint32_t hint_buf_size);
 void destroy_response(RespResponse *response);
-
 int encode_response_simplestring(RespResponse *response, int ok, const char *msg);
 
 #endif

@@ -1,6 +1,6 @@
 GCC=gcc
 #CPPFLAGS = -g -fPIC -Wall -W -Winline -Werror  -Wno-unused-parameter -Wno-unused-function -std=c99
-CPPFLAGS = -g -fPIC -Wall -W -std=c99
+CPPFLAGS = -g -fPIC -std=c99
 
 INCLUDE_PATH=-I. \
 

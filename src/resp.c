@@ -4,6 +4,7 @@
  created: 06/17/16 17:04:52 HKT
 */
 
+#include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include "resp.h"
@@ -14,7 +15,7 @@ RespRequest *create_request(uint32_t hint_buf_size) {
 		return NULL;
 	memset(req, 0 , sizeof(RespRequest));
 	
-	req->status = INIT;
+	req->state = INIT;
 	req->buf_size = hint_buf_size;
 	req->buf = (char *)malloc(hint_buf_size);
 	if (req->buf == NULL) {
@@ -36,9 +37,93 @@ void destroy_request(RespRequest *request) {
 	free(request);	
 }
 
+static int get_segment(RespRequest* request) {
+	RespRequest *r = request;
+	char *p = r->buf+r->pos; 
+	while (p-r->buf <= r->buf_size && !(*p == '\r' && *(p+1) == '\n')) {
+		p++;
+	}
+
+	if (p-r->buf > r->buf_size)
+		return -1;
+	int seg_end = p - r->buf;
+	r->buf[seg_end] = '\0'; //cut as c NULL-termialed string
+	return seg_end;
+}
+
+//example:*3\r\n$3\r\nfoo\r\n$-1\r\n$3\r\nbar\r\n
 int decode_request(RespRequest *request, const char *buf, uint32_t buf_len) {
+	RespRequest *r = request;
+
 	//append buf
-	//
+	if (buf_len+r->used_size > r->buf_size) {
+		//malloc new
+		uint32_t new_size = r->buf_size;
+		while (new_size < r->used_size+buf_len)
+			new_size *= 2; //double 
+		r->buf = (char *)realloc(r->buf, new_size);
+		if (r->buf == NULL)
+			return -1;
+		r->buf_size = new_size;
+	}
+	//just append
+	memcpy(r->buf+r->used_size, buf, buf_len);		
+	r->used_size += buf_len;
+	
+	int seg_end = -1;
+	int skip_str = 0;
+	while (seg_end = get_segment(r), seg_end > 0) {
+		//[pos, seg_end) is a segment
+
+		//*num
+		if (r->argc == 0 && r->state == INIT) {
+			//init argc,argv
+			if (r->buf[r->pos] != '*') {
+				r->state = ERR;
+				return 0;
+			}
+			
+			r->argc = atoi(r->buf+r->pos+1);
+			if (r->argc < 0) {
+				r->state = ERR;
+				return 0;
+			}
+			r->argv = (RespSlice *)malloc(sizeof(RespSlice)*r->argc);
+			if (r->argv == 0)
+				return -1;
+			
+			r->state = NOT_YET;
+		}
+		//$num str
+		else {
+			//$num
+			if (!skip_str && r->buf[r->pos] == '$') {
+				int len = atoi(r->buf+r->pos+1);
+				r->argv[r->cur_argc].off = seg_end+2;
+				r->argv[r->cur_argc].len = len;
+				r->cur_argc++;
+				skip_str = 1;
+			}
+			//str
+			else {
+				skip_str = 0;
+			}
+		}
+		
+		r->pos = seg_end+2;
+	}
+
+	//check request	
+	if (r->argc != r->cur_argc) {
+		r->state = ERR;
+		return 0;
+	}
+
+	//judge remain
+	if (r->pos+2 >= r->used_size)
+		r->state = OK;
+	else
+		r->state = PART_OK;
 	return 0;
 }
 
@@ -71,4 +156,23 @@ void destroy_response(RespResponse *response) {
 int encode_response_simplestring(RespResponse *response, int ok, const char *msg) {
 	return 0;
 }
+
+void print_request(RespRequest *request, int show_argv) {
+	RespRequest *r = request;
+	printf("state[%d] argc[%d] cur_argc[%d] ", r->state,r->argc,r->cur_argc);
+	printf("buf_size[%u] used_size[%u] pos[%d]", r->buf_size,r->used_size,r->pos);
+
+	for (int i = 0; i < r->argc; i++) 
+		printf(" argv%d[%d][%d]", i, r->argv[i].off, r->argv[i].len);
+
+	printf("\n");
+	if (show_argv) {
+		printf("REQUEST:");
+		for (int i = 0; i < r->argc; i++)
+			printf("%s ", r->buf+r->argv[i].off);
+
+		printf("\n");
+	}
+}
+
 

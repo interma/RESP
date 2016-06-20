@@ -13,9 +13,10 @@ int main() {
 	
 	char buf[]="*2\r\n$4\r\nLLEN\r\n$6\r\nmylist\r\n";
 	ret = decode_request(req, buf, sizeof(buf));
-	if (ret == 0 && req->status == OK) {
+	if (ret == 0 && req->state == OK) {
 		printf("decode ok\n");
 	}
+	print_request(req, 1);
 
 	destroy_request(req);
 
