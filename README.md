@@ -1,4 +1,4 @@
-# RESPI [![Build Status](https://travis-ci.org/benfred/implicit.svg?branch=master)](https://travis-ci.org/benfred/implicit)
+# RESP [![Build Status](https://travis-ci.org/benfred/implicit.svg?branch=master)](https://travis-ci.org/benfred/implicit)
 
 A RESP(REdis Serialization Protocol) C Lib, it make tcp server parse resp request and send resp response easily.
 
