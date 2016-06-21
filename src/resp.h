@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 
+#define SEP "\r\n" 
 enum STATE{
 	ERR = -1,
 	INIT = 0,
@@ -38,7 +39,7 @@ typedef struct {
 typedef struct {
 	char *buf;
 	uint32_t buf_size;
-	uint32_t len;
+	uint32_t used_size;
 }RespResponse;
 
 RespRequest *create_request(uint32_t hint_buf_size);
@@ -49,7 +50,19 @@ void print_request(RespRequest *request);
 
 RespResponse *create_response(uint32_t hint_buf_size);
 void destroy_response(RespResponse *response);
-int encode_response_simplestring(RespResponse *response, int ok, const char *msg);
+void reset_response(RespResponse *response);
+
+/*
+For Simple Strings the first byte of the reply is "+"
+For Errors the first byte of the reply is "-"
+For Integers the first byte of the reply is ":"
+For Bulk Strings the first byte of the reply is "$"
+For Arrays the first byte of the reply is "*"
+*/
+int encode_response_status(RespResponse *response, int ok, const char *msg);
+int encode_response_integer(RespResponse *response, int num);
+int encode_response_string(RespResponse *response, const char *str, uint32_t size);
+int encode_response_array(RespResponse *response, int num);
 
 #endif
 

@@ -5,6 +5,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include <assert.h>
 #include "resp.h"
 
@@ -12,6 +13,14 @@ void request_assert(int val, char *str, RespRequest *r) {
 	if (val == 0) {
 		printf("%s\n",str);
 		print_request(r);
+		assert(0);
+	}
+}
+void response_assert(int val, char *str, RespResponse *r) {
+	if (val == 0) {
+		printf("%s\n",str);
+		r->buf[r->used_size] = '\0';
+		printf("%s",r->buf);
 		assert(0);
 	}
 }
@@ -61,8 +70,26 @@ int main() {
 
 	//==response test==
 	RespResponse *res = create_response(128);
-	ret = encode_response_simplestring(res, 0, "OK");
-	if (ret == 0) {
+	{
+	reset_response(res);
+	ret = encode_response_status(res, 1, "OK");
+	response_assert( ret==0 && strncmp(res->buf,"+OK"SEP,res->used_size)==0, "status", res); 
+	}
+	{
+	reset_response(res);
+	ret = encode_response_integer(res, -1000);
+	response_assert( ret==0 && strncmp(res->buf,":-1000"SEP,res->used_size)==0, "integer", res); 
+	}
+	{
+	char buf[] = "foobar";
+	reset_response(res);
+	ret = encode_response_string(res, buf, strlen(buf));
+	response_assert( ret==0 && strncmp(res->buf,"$6"SEP"foobar"SEP,res->used_size)==0, "string", res); 
+	}
+	{
+	reset_response(res);
+	ret = encode_response_array(res, 10);
+	response_assert( ret==0 && strncmp(res->buf,"*10"SEP,res->used_size)==0, "array", res); 
 	}
 	destroy_response(res);
 
