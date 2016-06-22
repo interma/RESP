@@ -10,6 +10,7 @@
 #include <stdint.h>
 
 #define SEP "\r\n" 
+#define request_argv(r,i) r->buf+r->argv[i].off
 enum STATE{
 	ERR = -1,
 	INIT = 0,
@@ -32,7 +33,7 @@ typedef struct {
 	char *buf;
 	uint32_t buf_size;
 	uint32_t used_size;
-	int pos;
+	uint32_t pos;
 	int skip_str;
 }RespRequest;
 

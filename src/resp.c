@@ -42,11 +42,12 @@ void destroy_request(RespRequest *request) {
 static int get_segment(RespRequest* request) {
 	RespRequest *r = request;
 	char *p = r->buf+r->pos; 
-	while (p-r->buf <= r->buf_size && !(*p == '\r' && *(p+1) == '\n')) {
+	//while (p-r->buf <= r->buf_size && !(*p == '\r' && *(p+1) == '\n')) {
+	while (p != r->buf+r->buf_size && !(*p == '\r' && *(p+1) == '\n')) {
 		p++;
 	}
 
-	if (p-r->buf > r->buf_size)
+	if (p == r->buf+r->buf_size)
 		return -1;
 	int seg_end = p - r->buf;
 	r->buf[seg_end] = '\0'; //cut as c NULL-termialed string
@@ -90,7 +91,7 @@ int decode_request(RespRequest *request, const char *buf, uint32_t buf_len) {
 				r->state = ERR;
 				return 0;
 			}
-			r->argv = (RespSlice *)malloc(sizeof(RespSlice)*r->argc);
+			r->argv = (RespSlice *)calloc(sizeof(RespSlice), r->argc); //set buf 0
 			if (r->argv == 0)
 				return -1;
 			
@@ -136,7 +137,7 @@ void print_request(RespRequest *request) {
 	int show_argv = 1;
 	RespRequest *r = request;
 	printf("state[%d] argc[%d] cur_argc[%d] ", r->state,r->argc,r->cur_argc);
-	printf("buf_size[%u] used_size[%u] pos[%d]", r->buf_size,r->used_size,r->pos);
+	printf("buf_size[%u] used_size[%u] pos[%u]", r->buf_size,r->used_size,r->pos);
 
 	for (int i = 0; i < r->argc; i++) 
 		printf(" argv%d[%d][%d]", i, r->argv[i].off, r->argv[i].len);
