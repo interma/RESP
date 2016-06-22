@@ -14,5 +14,11 @@ See: http://redis.io/topics/protocol, the key points:
     Response: The server replies with one of the RESP types according to the command implementation.
 
 ##example##
+  #+BEGIN_SRC c
+#include "resp.h"
+int main() {
+}
+  #+END_SRC
+
 
 
