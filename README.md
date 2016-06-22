@@ -33,8 +33,53 @@ int main() {
 }
 ```
 ###server example###
+code segment, the full code pls see: https://github.com/interma/RESP/blob/master/src/sample_svr.c
 ```c
+{...
+	RespRequest *req = create_request(BUF_SIZE);
+	RespResponse *res = create_response(BUF_SIZE);
+	while (1) {
+		reset_request(req);
+		reset_response(res);	
+
+		socklen_t addr_len = sizeof(addr);
+		int cfd = accept(fd, (struct sockaddr*)&addr, &addr_len);
+		if (cfd < 0) {
+			perror("accept()");
+			continue;
+		}
+		char buf[1024];
+		int rnum = read(cfd,buf,sizeof(buf));
+		
+		if (decode_request(req, buf, rnum) == 0 && 
+			(req->state == OK || req->state == PART_OK) ){
+			if (req->argc > 1 && strncmp(request_argv(req,0), "add", 3) == 0) {
+				int total = 0;
+				for (int i = 1; i < req->argc; i++)
+					total += atoi(request_argv(req,i));
+				encode_response_integer(res, total);
+			}
+			else {
+				encode_response_status(res,0,"ERR unknown command");
+			}
+		}
+		else {
+			encode_response_status(res,0,"ERR decode command fail");
+		}
+		write(cfd, res->buf, res->used_size);
+		close(cfd);
+	}
+	destroy_request(req);
+	destroy_response(res);
+...}
 ```
-
+redis-cli visit
+```c
+interma@debian:~/package/redis-3.2.0/src$ ./redis-cli -p 1220
+127.0.0.1:1220> add 1 2 3 5
+(integer) 11
+127.0.0.1:1220> get xxx
+(error) ERR unknown command
+```
 ##other##
-
+find some bugs, welcome contact me or propose a pull request.
