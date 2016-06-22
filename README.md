@@ -13,12 +13,28 @@ See: http://redis.io/topics/protocol, the key points:
     Request: Clients send commands to a Redis server as a RESP Array of Bulk Strings.
     Response: The server replies with one of the RESP types according to the command implementation.
 
-##example##
-  #+BEGIN_SRC c
+##Example##
+###simple example###
+```c
 #include "resp.h"
 int main() {
+	int ret = 0;
+    RespRequest *req = create_request(1024);
+    RespResponse *res = create_response(128);
+    
+    char buf[]="*2\r\n$4\r\nLLEN\r\n$6\r\nmylist\r\n";
+    ret = decode_request(req, buf, sizeof(buf)-1);
+    char buf1[] = "foobar";
+    ret = encode_response_string(res, buf1, strlen(buf1));
+    
+    destroy_request(req);
+    destroy_response(res);
+    return 0;
 }
-  #+END_SRC
+```
+###server example###
+```c
+```
 
-
+##other##
 
