@@ -1,8 +1,8 @@
 # RESP [![Build Status](https://travis-ci.org/interma/RESP.svg?branch=master)](https://travis-ci.org/interma/RESP)
 
-A RESP(REdis Serialization Protocol) C Lib, it make tcp server parse resp request and send resp response easily.
+A RESP(REdis Serialization Protocol) C Lib, it makes tcp server to encode/decode RESP message easily.
 
-So you can use the existing redis-cli(or other redis client lib) communicate with your tcp server conveniently.
+So we can use the existing redis-cli(or other redis client lib) to communicate with our tcp server conveniently.
 
 ##REdis Serialization Protocol
 
@@ -33,9 +33,10 @@ int main() {
 }
 ```
 ###server example###
-code segment, the full code pls see: https://github.com/interma/RESP/blob/master/src/sample_svr.c
+server code snippet (The complete code is here: https://github.com/interma/RESP/blob/master/src/sample_svr.c)
 ```c
-{...
+/* server code sna */
+
 	RespRequest *req = create_request(BUF_SIZE);
 	RespResponse *res = create_response(BUF_SIZE);
 	while (1) {
@@ -71,9 +72,10 @@ code segment, the full code pls see: https://github.com/interma/RESP/blob/master
 	}
 	destroy_request(req);
 	destroy_response(res);
-...}
+	
+/* other code */
 ```
-redis-cli visit
+redis-cli client
 ```c
 interma@debian:~/package/redis-3.2.0/src$ ./redis-cli -p 1220
 127.0.0.1:1220> add 1 2 3 5
@@ -82,4 +84,4 @@ interma@debian:~/package/redis-3.2.0/src$ ./redis-cli -p 1220
 (error) ERR unknown command
 ```
 ##other##
-find some bugs, welcome contact me or propose a pull request.
+find any bugs, welcome to open a pull request.
