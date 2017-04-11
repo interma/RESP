@@ -1,6 +1,6 @@
 # RESP [![Build Status](https://travis-ci.org/interma/RESP.svg?branch=master)](https://travis-ci.org/interma/RESP)
 
-A RESP(REdis Serialization Protocol) C Lib, it makes tcp server to encode/decode RESP message easily.
+A RESP(REdis Serialization Protocol) C Lib, it helps tcp server to encode/decode RESP message easily.
 
 So we can use the existing redis-cli(or other redis client lib) to communicate with our tcp server conveniently.
 
@@ -13,8 +13,8 @@ See: http://redis.io/topics/protocol, the key points:
     Request: Clients send commands to a Redis server as a RESP Array of Bulk Strings.
     Response: The server replies with one of the RESP types according to the command implementation.
 
-##Example##
-###simple example###
+## Example 
+### simple example
 ```c
 #include "resp.h"
 int main() {
@@ -32,7 +32,7 @@ int main() {
     return 0;
 }
 ```
-###server example###
+### server example
 server code snippet (The complete code is here: https://github.com/interma/RESP/blob/master/src/sample_svr.c)
 ```c
 /* server code sna */
@@ -83,5 +83,5 @@ interma@debian:~/package/redis-3.2.0/src$ ./redis-cli -p 1220
 127.0.0.1:1220> get xxx
 (error) ERR unknown command
 ```
-##other##
-find any bugs, welcome to open a pull request.
+## other
+Welcome to open a pull request.
